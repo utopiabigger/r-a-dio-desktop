@@ -30,3 +30,5 @@ export default defineConfig(async () => ({
     },
   },
 }));
+
+// Configures the Vite build process, which affects how the GUI is built
