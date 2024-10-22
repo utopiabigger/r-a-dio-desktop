@@ -2823,6 +2823,7 @@ dependencies = [
 name = "r-a-dio-desktop"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
  "parking_lot",
  "reqwest 0.11.27",
  "rodio",
@@ -3002,10 +3003,12 @@ dependencies = [
  "system-configuration",
  "tokio",
  "tokio-native-tls",
+ "tokio-util",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams",
  "web-sys",
  "winreg 0.50.0",
 ]
