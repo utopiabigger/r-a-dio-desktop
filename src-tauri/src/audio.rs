@@ -1,5 +1,5 @@
 use rodio::{Decoder, OutputStream, Sink};
-use std::io::{BufReader, Cursor};
+use std::io::{BufReader, Read};
 use std::sync::Arc;
 use reqwest::blocking::Client;
 
@@ -44,24 +44,28 @@ impl AudioManager {
 
         // Spawn a thread to handle the streaming
         std::thread::spawn(move || {
-            loop {
-                // Create HTTP client and fetch stream
-                if let Ok(response) = Client::new()
-                    .get("https://relay0.r-a-d.io/main.mp3")
-                    .header("Icy-MetaData", "1")
-                    .header("User-Agent", "r-a-dio-desktop/0.1.0")
-                    .send()
-                {
-                    // Read a chunk of the stream
-                    if let Ok(chunk) = response.bytes() {
-                        // Create a cursor (which implements Seek) from the chunk
-                        let cursor = Cursor::new(chunk);
-                        let reader = BufReader::new(cursor);
-                        
-                        // Try to decode and play the chunk
-                        if let Ok(decoder) = Decoder::new(reader) {
-                            sink_clone.append(decoder);
+            // Create HTTP client and fetch stream
+            if let Ok(response) = Client::new()
+                .get("https://relay0.r-a-d.io/main.mp3")
+                .header("Icy-MetaData", "1")
+                .header("User-Agent", "r-a-dio-desktop/0.1.0")
+                .send()
+            {
+                let mut reader = BufReader::new(response);
+                let mut buffer = [0; 8192]; // 8KB buffer
+
+                loop {
+                    match reader.read(&mut buffer) {
+                        Ok(bytes_read) if bytes_read > 0 => {
+                            // Create a new buffer with just the bytes we read
+                            let chunk = buffer[..bytes_read].to_vec();
+                            
+                            // Try to decode and play the chunk
+                            if let Ok(decoder) = Decoder::new(std::io::Cursor::new(chunk)) {
+                                sink_clone.append(decoder);
+                            }
                         }
+                        _ => break, // Error or EOF
                     }
                 }
             }
