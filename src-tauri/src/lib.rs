@@ -2,35 +2,38 @@
 mod audio;
 
 use audio::AudioManager;
+use std::sync::Arc;
 use parking_lot::Mutex;
 
-// Wrap our state in a mutex for thread-safe access
-struct State {
-    audio: Mutex<AudioManager>,
+// Wrap our state in Arc<Mutex> for thread-safe access
+pub struct State {
+    audio: Arc<Mutex<AudioManager>>,
 }
 
 impl Default for State {
     fn default() -> Self {
         Self {
-            audio: Mutex::new(AudioManager::default()),
+            audio: Arc::new(Mutex::new(AudioManager::default())),
         }
     }
 }
 
 #[tauri::command]
-fn toggle_playback(state: tauri::State<'_, State>) -> Result<bool, String> {
+fn toggle_playback(state: tauri::State<State>) -> Result<bool, String> {
     let mut audio = state.audio.lock();
     if audio.is_playing() {
+        println!("Stopping playback");
         audio.stop()?;
         Ok(false)
     } else {
+        println!("Starting playback");
         audio.start()?;
         Ok(true)
     }
 }
 
 #[tauri::command]
-fn set_volume(volume: f32, state: tauri::State<'_, State>) -> Result<(), String> {
+fn set_volume(volume: f32, state: tauri::State<State>) -> Result<(), String> {
     let audio = state.audio.lock();
     audio.set_volume(volume)
 }
