@@ -15,15 +15,19 @@ name = "r_a_dio_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.0.0-alpha.12", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2.0.0-alpha.18", features = [] }
 tauri-plugin-shell = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-rodio = "0.17"
-reqwest = { version = "0.11", features = ["json", "blocking", "stream"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rodio = "0.19.0"
+reqwest = { version = "0.12.9", features = ["blocking"] }
 tokio = { version = "1.0", features = ["full", "sync"] }
 parking_lot = "0.12"
 futures-util = "0.3"
+symphonia = { version = "0.5.3", features = ["mp3"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
