@@ -1,6 +1,16 @@
 # r/a/dio Desktop App
 
-Rewriting this program in Go because it will be easier then whatever the fuck this is.
+A desktop application for r/a/dio written in Go.
+
+## Development
+
+This project is currently being developed with Go 1.22.6.
+
+### Running the project
+
+```bash
+go run main.go
+```
 
 ## License
 
