@@ -1,5 +1,5 @@
 # Next changes
-Implement the audio streaming functionality
-Add more UI controls
-Handle audio playback states
-Add error handling and loading states
+Implementing the actual radio stream functionality
+Adding more UI components like the song info display
+Creating a volume control
+Adding the DJ/last played information
