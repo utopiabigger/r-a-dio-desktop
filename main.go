@@ -9,19 +9,22 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"gioui.org/op/paint"
+	"github.com/yourusername/radio-desktop/audio"
 )
 
 // Colors from r-a-d.io
 var (
-	background = color.NRGBA{R: 20, G: 20, B: 20, A: 255}     // Dark background
-	accent     = color.NRGBA{R: 51, G: 181, B: 229, A: 255}   // Blue accent
-	textColor  = color.NRGBA{R: 255, G: 255, B: 255, A: 255}  // White text
+	background = color.NRGBA{R: 20, G: 20, B: 20, A: 255}    // Dark background
+	accent     = color.NRGBA{R: 51, G: 181, B: 229, A: 255}  // Blue accent
+	textColor  = color.NRGBA{R: 255, G: 255, B: 255, A: 255} // White text
 )
+
+const streamURL = "https://relay0.r-a-d.io/main.mp3"
 
 func main() {
 	go func() {
@@ -38,13 +41,18 @@ func main() {
 
 func run(w *app.Window) error {
 	th := material.NewTheme()
-	// Customize theme colors
 	th.Palette.Bg = background
 	th.Palette.ContrastBg = accent
 	th.Palette.Fg = textColor
-	
+
 	var ops op.Ops
 	var button widget.Clickable
+
+	// Initialize audio player
+	audioPlayer, err := audio.NewPlayer()
+	if err != nil {
+		return err
+	}
 
 	for e := range w.Events() {
 		switch e := e.(type) {
@@ -53,11 +61,16 @@ func run(w *app.Window) error {
 		case system.FrameEvent:
 			gtx := layout.NewContext(&ops, e)
 
-			// Fill background
 			paint.Fill(gtx.Ops, background)
 
 			if button.Clicked() {
-				log.Println("Hello, R/a/dio!")
+				if !audioPlayer.IsPlaying() {
+					if err := audioPlayer.PlayStream(streamURL); err != nil {
+						log.Printf("Error starting stream: %v", err)
+					}
+				} else {
+					audioPlayer.Stop()
+				}
 			}
 
 			layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -70,7 +83,11 @@ func run(w *app.Window) error {
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					btn := material.Button(th, &button, "Play Stream")
+					buttonText := "Play Stream"
+					if audioPlayer.IsPlaying() {
+						buttonText = "Stop Stream"
+					}
+					btn := material.Button(th, &button, buttonText)
 					btn.Background = accent
 					btn.TextSize = unit.Sp(16)
 					return layout.Center.Layout(gtx, btn.Layout)
