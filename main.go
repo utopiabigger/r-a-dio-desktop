@@ -26,6 +26,11 @@ var (
 
 const streamURL = "https://relay0.r-a-d.io/main.mp3"
 
+// Add this with other global variables
+var (
+	volumeSlider widget.Float
+)
+
 func main() {
 	go func() {
 		w := app.NewWindow(
@@ -34,7 +39,7 @@ func main() {
 		if err := run(w); err != nil {
 			log.Fatal(err)
 		}
-		os.Exit(0)
+			os.Exit(0)
 	}()
 	app.Main()
 }
@@ -54,6 +59,9 @@ func run(w *app.Window) error {
 		return err
 	}
 
+	// Initialize volume slider
+	volumeSlider.Value = 1.0 // Start at 100% volume
+
 	for e := range w.Events() {
 		switch e := e.(type) {
 		case system.DestroyEvent:
@@ -63,6 +71,12 @@ func run(w *app.Window) error {
 
 			paint.Fill(gtx.Ops, background)
 
+			// Handle volume changes
+			if volumeSlider.Changed() {
+				audioPlayer.SetVolume(float64(volumeSlider.Value))
+			}
+
+			// Add this inside the system.FrameEvent case, before the layout code
 			if button.Clicked() {
 				if !audioPlayer.IsPlaying() {
 					if err := audioPlayer.PlayStream(streamURL); err != nil {
@@ -75,11 +89,35 @@ func run(w *app.Window) error {
 
 			layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					title := material.H1(th, "R/a/dio Desktop")
+					title := material.H1(th, "r/a/dio Desktop")
 					title.Color = textColor
 					title.Alignment = text.Middle
 					title.TextSize = unit.Sp(24)
 					return title.Layout(gtx)
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+				// Add volume slider
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					// Create a container for the slider with some padding
+					return layout.Inset{
+						Left:  unit.Dp(40),
+						Right: unit.Dp(40),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								label := material.Body1(th, "Volume")
+								label.Color = textColor
+								label.Alignment = text.Middle
+								return label.Layout(gtx)
+							}),
+							layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+								slider := material.Slider(th, &volumeSlider, 0, 1)
+								slider.Color = accent
+								return slider.Layout(gtx)
+							}),
+						)
+					})
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
