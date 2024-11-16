@@ -5,8 +5,8 @@ Creating a volume control
 Adding the DJ/last played information
 
 # Current problems
-Volume slider is too big
-Mute happens too early in the slider
+GUI isn't hot
+API needs to be implemented
 
 # Unironic next changes
-Icon for window
+Volume slider is too big

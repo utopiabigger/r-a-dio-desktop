@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+
 	"gioui.org/app"
 	"gioui.org/io/system"
 	"gioui.org/layout"
@@ -32,7 +33,7 @@ var (
 func main() {
 	go func() {
 		w := app.NewWindow(
-			app.Title("R/a/dio Desktop"),
+			app.Title("r/a/dio Desktop"),
 			app.Size(unit.Dp(400), unit.Dp(300)),
 			app.MinSize(unit.Dp(300), unit.Dp(200)),
 		)

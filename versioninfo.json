@@ -19,16 +19,16 @@
         "FileSubType": "00"
     },
     "StringFileInfo": {
-        "Comments": "R/a/dio Desktop Client",
+        "Comments": "r/a/dio Desktop Client",
         "CompanyName": "",
-        "FileDescription": "R/a/dio Desktop Client",
+        "FileDescription": "r/a/dio Desktop Client",
         "FileVersion": "1.0.0.0",
         "InternalName": "radio-desktop",
         "LegalCopyright": "",
         "LegalTrademarks": "",
         "OriginalFilename": "radio-desktop.exe",
         "PrivateBuild": "",
-        "ProductName": "R/a/dio Desktop",
+        "ProductName": "r/a/dio Desktop",
         "ProductVersion": "1.0.0.0",
         "SpecialBuild": ""
     },
