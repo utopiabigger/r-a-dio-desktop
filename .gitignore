@@ -1,0 +1,7 @@
+radio-desktop.exe
+
+# resources
+resource_windows_386.syso
+resource_windows_amd64.syso
+resource_windows_arm.syso
+resource_windows_arm64.syso

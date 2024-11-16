@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"log"
 	"os"
-
 	"gioui.org/app"
 	"gioui.org/io/system"
 	"gioui.org/layout"
@@ -26,7 +25,6 @@ var (
 
 const streamURL = "https://relay0.r-a-d.io/main.mp3"
 
-// Add this with other global variables
 var (
 	volumeSlider widget.Float
 )
@@ -35,11 +33,13 @@ func main() {
 	go func() {
 		w := app.NewWindow(
 			app.Title("R/a/dio Desktop"),
+			app.Size(unit.Dp(400), unit.Dp(300)),
+			app.MinSize(unit.Dp(300), unit.Dp(200)),
 		)
 		if err := run(w); err != nil {
 			log.Fatal(err)
 		}
-			os.Exit(0)
+		os.Exit(0)
 	}()
 	app.Main()
 }
