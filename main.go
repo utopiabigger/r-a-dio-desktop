@@ -15,11 +15,12 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/yourusername/radio-desktop/audio"
+	"image/png"
 )
 
 // Colors from r-a-d.io
 var (
-	background = color.NRGBA{R: 20, G: 20, B: 20, A: 255}    // Dark background
+	background = color.NRGBA{R: 34, G: 34, B: 34, A: 255}    // Updated dark background
 	accent     = color.NRGBA{R: 51, G: 181, B: 229, A: 255}  // Blue accent
 	textColor  = color.NRGBA{R: 255, G: 255, B: 255, A: 255} // White text
 )
@@ -61,7 +62,19 @@ func run(w *app.Window) error {
 	}
 
 	// Initialize volume slider
-	volumeSlider.Value = 1.0 // Start at 100% volume
+	volumeSlider.Value = 0.0 // Start at maximum volume
+
+	// Load the image
+	imgFile, err := os.Open("assets/radio.png")
+	if err != nil {
+		log.Fatalf("failed to open image: %v", err)
+	}
+	defer imgFile.Close()
+
+	img, err := png.Decode(imgFile)
+	if err != nil {
+		log.Fatalf("failed to decode image: %v", err)
+	}
 
 	for e := range w.Events() {
 		switch e := e.(type) {
@@ -74,7 +87,7 @@ func run(w *app.Window) error {
 
 			// Handle volume changes
 			if volumeSlider.Changed() {
-				audioPlayer.SetVolume(float64(volumeSlider.Value))
+				audioPlayer.SetVolume(1.0 - float64(volumeSlider.Value))
 			}
 
 			// Add this inside the system.FrameEvent case, before the layout code
@@ -90,11 +103,10 @@ func run(w *app.Window) error {
 
 			layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					title := material.H1(th, "r/a/dio Desktop")
-					title.Color = textColor
-					title.Alignment = text.Middle
-					title.TextSize = unit.Sp(24)
-					return title.Layout(gtx)
+					// Draw the image
+					imgOp := paint.NewImageOp(img)
+					imgWidget := widget.Image{Src: imgOp, Scale: 1}
+					return imgWidget.Layout(gtx)
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 				// Add volume slider
