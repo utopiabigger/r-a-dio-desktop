@@ -103,10 +103,12 @@ func run(w *app.Window) error {
 
 			layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					// Draw the image
-					imgOp := paint.NewImageOp(img)
-					imgWidget := widget.Image{Src: imgOp, Scale: 1}
-					return imgWidget.Layout(gtx)
+					// Draw the image centered
+					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						imgOp := paint.NewImageOp(img)
+						imgWidget := widget.Image{Src: imgOp, Scale: 1}
+						return imgWidget.Layout(gtx)
+					})
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 				// Add volume slider
