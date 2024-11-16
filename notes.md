@@ -1,2 +1,12 @@
-* No audio is coming out at all when you click play
-* When you click play and then click stop it doesn't work
+# Next changes
+Implementing the actual radio stream functionality
+Adding more UI components like the song info display
+Creating a volume control
+Adding the DJ/last played information
+
+# Current problems
+GUI isn't hot
+API needs to be implemented
+
+# Unironic next changes
+Volume slider is too big

@@ -1,10 +1,16 @@
 # r/a/dio Desktop App
 
-r/a/dio is a simple, Tauri application that streams music from the r/a/dio online radio station. This app allows users to listen to the radio stream with basic play/pause functionality and displays information about the current DJ using API calls.
+A desktop application for r/a/dio written in Go.
 
-## Recommended IDE Setup
+## Development
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+This project is currently being developed with Go 1.22.6.
+
+### Running the project
+
+```bash
+go run main.go
+```
 
 ## License
 

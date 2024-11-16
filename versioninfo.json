@@ -1,0 +1,36 @@
+{
+    "FixedFileInfo": {
+        "FileVersion": {
+            "Major": 1,
+            "Minor": 0,
+            "Patch": 0,
+            "Build": 0
+        },
+        "ProductVersion": {
+            "Major": 1,
+            "Minor": 0,
+            "Patch": 0,
+            "Build": 0
+        },
+        "FileFlagsMask": "3f",
+        "FileFlags": "00",
+        "FileOS": "040004",
+        "FileType": "01",
+        "FileSubType": "00"
+    },
+    "StringFileInfo": {
+        "Comments": "r/a/dio Desktop Client",
+        "CompanyName": "",
+        "FileDescription": "r/a/dio Desktop Client",
+        "FileVersion": "1.0.0.0",
+        "InternalName": "radio-desktop",
+        "LegalCopyright": "",
+        "LegalTrademarks": "",
+        "OriginalFilename": "radio-desktop.exe",
+        "PrivateBuild": "",
+        "ProductName": "r/a/dio Desktop",
+        "ProductVersion": "1.0.0.0",
+        "SpecialBuild": ""
+    },
+    "IconPath": "icon.ico"
+} 
