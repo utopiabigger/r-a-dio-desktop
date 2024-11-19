@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"time"
 	"image"
+	"fmt"
 
 	"gioui.org/app"
 	"gioui.org/io/system"
@@ -37,16 +38,36 @@ var (
 	listeners  int
 	djName     string
 	djImage    image.Image
+	songProgress int
+	songLength   int
 )
 
 // Add these structs for the API response
 type RadioAPI struct {
 	Main struct {
-		Np        string `json:"np"`        // Now playing
-		Listeners int    `json:"listeners"`  // Current listeners
-		DjName    string `json:"djname"`    // Current DJ
+		Np        string `json:"np"`
+		Listeners int    `json:"listeners"`
+		DjName    string `json:"djname"`
 		IsAfk     bool   `json:"isafkstream"`
+		Start     int64  `json:"start_time"`    // Song start time
+		End       int64  `json:"end_time"`      // Song end time
 	} `json:"main"`
+}
+
+// Add this function to calculate progress
+func calculateProgress(start, end int64) (int, int) {
+	now := time.Now().Unix()
+	total := end - start
+	current := now - start
+	
+	if current < 0 {
+		current = 0
+	}
+	if current > total {
+		current = total
+	}
+	
+	return int(current), int(total)
 }
 
 // Add this function to fetch the API data
@@ -128,17 +149,18 @@ func run(w *app.Window) error {
 			nowPlaying = data.Main.Np
 			listeners = data.Main.Listeners
 			djName = data.Main.DjName
-			w.Invalidate() // Request a redraw
+			songProgress, songLength = calculateProgress(data.Main.Start, data.Main.End)
+			w.Invalidate()
 		}
 
-		// Then continue with periodic updates
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(1 * time.Second)
 		for range ticker.C {
 			if data, err := fetchRadioData(); err == nil {
 				nowPlaying = data.Main.Np
 				listeners = data.Main.Listeners
 				djName = data.Main.DjName
-				w.Invalidate() // Request a redraw
+				songProgress, songLength = calculateProgress(data.Main.Start, data.Main.End)
+				w.Invalidate()
 			}
 		}
 	}()
@@ -194,12 +216,23 @@ func run(w *app.Window) error {
 									return layout.Center.Layout(gtx, djImgWidget.Layout) // Center the image
 								}),
 								layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
-								// DJ Name
+								// DJ Name and Listeners
 								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-									label := material.Caption(th, "Current DJ: " + djName) // Added "Current DJ: " prefix
-									label.Color = textColor
-									label.Alignment = text.Middle
-									return layout.Center.Layout(gtx, label.Layout) // Center the text
+									return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+											label := material.Caption(th, "DJ: " + djName)
+											label.Color = textColor
+											label.Alignment = text.Middle
+											return layout.Center.Layout(gtx, label.Layout)
+										}),
+										layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+										layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+											label := material.Caption(th, fmt.Sprintf("Listeners: %d", listeners))
+											label.Color = textColor
+											label.Alignment = text.Middle
+											return layout.Center.Layout(gtx, label.Layout)
+										}),
+									)
 								}),
 							)
 						})
@@ -207,12 +240,56 @@ func run(w *app.Window) error {
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 				// Add Now Playing text
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						label := material.Body1(th, nowPlaying)
 						label.Color = textColor
 						label.Alignment = text.Middle
 						return label.Layout(gtx)
+					})
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						// Create a container for the progress bar
+						return layout.Inset{
+							Left:  unit.Dp(40),
+							Right: unit.Dp(40),
+						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							// Format time as MM:SS
+							currentTime := fmt.Sprintf("%02d:%02d", songProgress/60, songProgress%60)
+							totalTime := fmt.Sprintf("%02d:%02d", songLength/60, songLength%60)
+							
+							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+								// Progress bar
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									var progress float32
+									if songLength > 0 {
+										progress = float32(songProgress) / float32(songLength)
+									}
+									progressBar := material.ProgressBar(th, progress)
+									progressBar.Color = accent
+									return progressBar.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+								// Time display
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+										layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+											label := material.Caption(th, currentTime)
+											label.Color = textColor
+											return label.Layout(gtx)
+										}),
+										layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+											label := material.Caption(th, totalTime)
+											label.Color = textColor
+											label.Alignment = text.End
+											return label.Layout(gtx)
+										}),
+									)
+								}),
+							)
+						})
 					})
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
