@@ -107,8 +107,17 @@ func run(w *app.Window) error {
 		log.Fatalf("failed to decode image: %v", err)
 	}
 
-	// In your run function, add a goroutine to update the data
+	// In the run function, modify the API fetching goroutine:
 	go func() {
+		// Fetch immediately on start
+		if data, err := fetchRadioData(); err == nil {
+			nowPlaying = data.Main.Np
+			listeners = data.Main.Listeners
+			djName = data.Main.DjName
+			w.Invalidate() // Request a redraw
+		}
+
+		// Then continue with periodic updates
 		ticker := time.NewTicker(10 * time.Second)
 		for range ticker.C {
 			if data, err := fetchRadioData(); err == nil {
@@ -155,28 +164,38 @@ func run(w *app.Window) error {
 					})
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
-				// Add volume slider
+				// Add Now Playing text
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						label := material.Body1(th, nowPlaying)
+						label.Color = textColor
+						label.Alignment = text.Middle
+						return label.Layout(gtx)
+					})
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+				// Volume slider (rest remains the same)
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					// Create a container for the slider with some padding
 					return layout.Inset{
-						Left:  unit.Dp(40),
-						Right: unit.Dp(40),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								label := material.Body1(th, "Volume")
-								label.Color = textColor
-								label.Alignment = text.Middle
-								return label.Layout(gtx)
-							}),
-							layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								slider := material.Slider(th, &volumeSlider, 0, 1)
-								slider.Color = accent
-								return slider.Layout(gtx)
-							}),
-						)
-					})
+							Left:  unit.Dp(40),
+							Right: unit.Dp(40),
+						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									label := material.Body1(th, "Volume")
+									label.Color = textColor
+									label.Alignment = text.Middle
+									return label.Layout(gtx)
+								}),
+								layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									slider := material.Slider(th, &volumeSlider, 0, 1)
+									slider.Color = accent
+									return slider.Layout(gtx)
+								}),
+							)
+						})
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
