@@ -22,7 +22,7 @@ type Player struct {
 
 func NewPlayer() (*Player, error) {
 	return &Player{
-		volume: 1.0, // Default volume to 100%
+		volume: 0.5, // Default volume to 50%
 	}, nil
 }
 
@@ -60,10 +60,10 @@ func (p *Player) PlayStream(url string) error {
 		p.ctrl = &effects.Volume{
 			Streamer: streamer,
 			Base:     2,
-			Volume:   0,
+			Volume:   40 * (p.volume - 0.5), // Initialize with the current volume setting
 			Silent:   false,
 		}
-		
+
 		p.isPlaying = true
 		speaker.Play(p.ctrl)
 
@@ -101,13 +101,14 @@ func (p *Player) SetVolume(vol float64) {
 			vol = 1
 		}
 		// Convert linear volume to logarithmic scale
-		// When vol is 0, Volume will be -inf (silent)
-		// When vol is 1, Volume will be 0 (full volume)
+		// When vol is 0, Volume will be -20 (minimum volume)
+		// When vol is 0.5, Volume will be 0 (default volume)
+		// When vol is 1, Volume will be +20 (maximum volume)
 		if vol > 0 {
-			p.ctrl.Volume = -20 * (1 - vol)
+			p.ctrl.Volume = 40 * (vol - 0.5) // Centers at 0 dB, ranges from -20 to +20 dB
 		} else {
 			p.ctrl.Volume = -999 // Effectively mute
 		}
 		speaker.Unlock()
 	}
-} 
+}

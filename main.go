@@ -3,7 +3,10 @@ package main
 import (
 	"image/color"
 	"log"
+	"net/http"
 	"os"
+	"encoding/json"
+	"time"
 
 	"gioui.org/app"
 	"gioui.org/io/system"
@@ -29,7 +32,35 @@ const streamURL = "https://relay0.r-a-d.io/main.mp3"
 
 var (
 	volumeSlider widget.Float
+	nowPlaying string
+	listeners  int
+	djName     string
 )
+
+// Add these structs for the API response
+type RadioAPI struct {
+	Main struct {
+		Np        string `json:"np"`        // Now playing
+		Listeners int    `json:"listeners"`  // Current listeners
+		DjName    string `json:"djname"`    // Current DJ
+		IsAfk     bool   `json:"isafkstream"`
+	} `json:"main"`
+}
+
+// Add this function to fetch the API data
+func fetchRadioData() (*RadioAPI, error) {
+	resp, err := http.Get("https://r-a-d.io/api")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var data RadioAPI
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
 
 func main() {
 	go func() {
@@ -62,7 +93,7 @@ func run(w *app.Window) error {
 	}
 
 	// Initialize volume slider
-	volumeSlider.Value = 0.0 // Start at maximum volume
+	volumeSlider.Value = 0.5 // Start at middle position (50%)
 
 	// Load the image
 	imgFile, err := os.Open("assets/radio.png")
@@ -76,6 +107,19 @@ func run(w *app.Window) error {
 		log.Fatalf("failed to decode image: %v", err)
 	}
 
+	// In your run function, add a goroutine to update the data
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		for range ticker.C {
+			if data, err := fetchRadioData(); err == nil {
+				nowPlaying = data.Main.Np
+				listeners = data.Main.Listeners
+				djName = data.Main.DjName
+				w.Invalidate() // Request a redraw
+			}
+		}
+	}()
+
 	for e := range w.Events() {
 		switch e := e.(type) {
 		case system.DestroyEvent:
@@ -87,7 +131,7 @@ func run(w *app.Window) error {
 
 			// Handle volume changes
 			if volumeSlider.Changed() {
-				audioPlayer.SetVolume(1.0 - float64(volumeSlider.Value))
+				audioPlayer.SetVolume(float64(volumeSlider.Value))
 			}
 
 			// Add this inside the system.FrameEvent case, before the layout code

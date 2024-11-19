@@ -10,3 +10,5 @@ API needs to be implemented
 
 # Unironic next changes
 Volume slider is too big
+Inverted Volume slider -> fix
+Make play button just play instead of play stream
