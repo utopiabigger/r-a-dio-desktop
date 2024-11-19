@@ -7,6 +7,7 @@ import (
 	"os"
 	"encoding/json"
 	"time"
+	"image"
 
 	"gioui.org/app"
 	"gioui.org/io/system"
@@ -35,6 +36,7 @@ var (
 	nowPlaying string
 	listeners  int
 	djName     string
+	djImage    image.Image
 )
 
 // Add these structs for the API response
@@ -66,8 +68,8 @@ func main() {
 	go func() {
 		w := app.NewWindow(
 			app.Title("r/a/dio Desktop"),
-			app.Size(unit.Dp(400), unit.Dp(300)),
-			app.MinSize(unit.Dp(300), unit.Dp(200)),
+			app.Size(unit.Dp(400), unit.Dp(600)),
+			app.MinSize(unit.Dp(300), unit.Dp(500)),
 		)
 		if err := run(w); err != nil {
 			log.Fatal(err)
@@ -95,7 +97,7 @@ func run(w *app.Window) error {
 	// Initialize volume slider
 	volumeSlider.Value = 0.5 // Start at middle position (50%)
 
-	// Load the image
+	// Load the radio logo
 	imgFile, err := os.Open("assets/radio.png")
 	if err != nil {
 		log.Fatalf("failed to open image: %v", err)
@@ -105,6 +107,18 @@ func run(w *app.Window) error {
 	img, err := png.Decode(imgFile)
 	if err != nil {
 		log.Fatalf("failed to decode image: %v", err)
+	}
+
+	// Load the DJ image
+	djImgFile, err := os.Open("assets/hanyuu.png")
+	if err != nil {
+		log.Fatalf("failed to open DJ image: %v", err)
+	}
+	defer djImgFile.Close()
+
+	djImage, err = png.Decode(djImgFile)
+	if err != nil {
+		log.Fatalf("failed to decode DJ image: %v", err)
 	}
 
 	// In the run function, modify the API fetching goroutine:
@@ -156,11 +170,39 @@ func run(w *app.Window) error {
 
 			layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					// Draw the image centered
+					// Draw the radio logo centered
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						imgOp := paint.NewImageOp(img)
 						imgWidget := widget.Image{Src: imgOp, Scale: 1}
 						return imgWidget.Layout(gtx)
+					})
+				}),
+				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
+				// Add DJ image and name
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						// Create an inset to constrain the width of the DJ section
+						return layout.Inset{
+							Left: unit.Dp(20),
+							Right: unit.Dp(20),
+						}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+								// DJ Image
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									djImg := paint.NewImageOp(djImage)
+									djImgWidget := widget.Image{Src: djImg, Scale: 0.8}
+									return layout.Center.Layout(gtx, djImgWidget.Layout) // Center the image
+								}),
+								layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+								// DJ Name
+								layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+									label := material.Caption(th, "Current DJ: " + djName) // Added "Current DJ: " prefix
+									label.Color = textColor
+									label.Alignment = text.Middle
+									return layout.Center.Layout(gtx, label.Layout) // Center the text
+								}),
+							)
+						})
 					})
 				}),
 				layout.Rigid(layout.Spacer{Height: unit.Dp(20)}.Layout),
